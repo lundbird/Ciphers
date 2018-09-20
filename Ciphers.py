@@ -106,12 +106,13 @@ class Affine(Cipher):
 
     def crack(self,ciphertext,plaintext=None):
     sums={}
-    for shift in range(26):
-        shifted_string = self.decrypt(ciphertext,shift)
-        cipher_frequencies = get_cipher_frequencies(shifted_string)
-        correlations = [frequencies[letter]*cipher_frequencies[letter] for letter in alphabet]
-        sums[shift] = sum(correlations)
-    likely_key = max(sums,key=sums.get)
+    for a in range(26):
+        for b in range(26):
+            shifted_string = self.decrypt(ciphertext,a,b)
+            cipher_frequencies = get_cipher_frequencies(shifted_string)
+            correlations = [frequencies[letter]*cipher_frequencies[letter] for letter in alphabet]
+            sums[shift] = sum(correlations)
+    likelyf_key = max(sums,key=sums.get)
         
 if __name__=="__main__":
     pass
