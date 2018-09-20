@@ -94,23 +94,25 @@ class Hill(Cipher):
 class Affine(Cipher):
 
     def encrypt(self,plaintext,a,b):
-        alphabet=string.ascii_uppercase
         shifted_alphabet = [letters[(nums[letter]*a+b)%26] for letter in alphabet]
         table = str.maketrans(alphabet, ''.join(shifted_alphabet))
         return plaintext.translate(table)
 
-    def decrypt(self,ciphertext,a_inv,b):
-        alphabet = string.ascii_uppercase
+    def decrypt(self,ciphertext,a,b):
+        a_inv = modInverse(a,26)
         shifted_alphabet = [letters[a_inv*(nums[letter]-b)%26] for letter in alphabet]
         table = str.maketrans(alphabet, ''.join(shifted_alphabet))
         return ciphertext.translate(table)
 
     def crack(self,ciphertext,plaintext=None):
-        pass
+        sums={}
+        for shift in range(26):
+            shifted_string = self.decrypt(ciphertext,shift)
+            cipher_frequencies = get_cipher_frequencies(shifted_string)
+            correlations = [frequencies[letter]*cipher_frequencies[letter] for letter in alphabet]
+            sums[shift] = sum(correlations)
+        likely_key = max(sums,key=sums.get)
         
 if __name__=="__main__":
-    ciphertext='ALIIP'
-    runner = Shift()
-    for shift in range(26):
-        print("text: " + runner.decrypt(ciphertext,shift) + " shift: " + str(shift))
+    pass
 
