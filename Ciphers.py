@@ -105,15 +105,21 @@ class Affine(Cipher):
         return ciphertext.translate(table)
 
     def crack(self,ciphertext,plaintext=None):
-    sums={}
-    for a in range(26):
-        for b in range(26):
-            shifted_string = self.decrypt(ciphertext,a,b)
-            cipher_frequencies = get_cipher_frequencies(shifted_string)
-            correlations = [frequencies[letter]*cipher_frequencies[letter] for letter in alphabet]
-            sums[shift] = sum(correlations)
-    likelyf_key = max(sums,key=sums.get)
-        
+        sums={}
+        for a in range(26):
+            for b in range(26):
+                shifted_string = self.decrypt(ciphertext,a,b)
+                cipher_frequencies = get_cipher_frequencies(shifted_string)
+                correlations = [frequencies[letter]*cipher_frequencies[letter] for letter in alphabet]
+                sums[str(a)+','+str(b)] = sum(correlations)
+        likely_key = max(sums,key=sums.get)
+        a,b = likely_key.split(',')
+        return self.decrypt(ciphertext,int(a),int(b))
+
+
 if __name__=="__main__":
-    pass
+    runner = Affine()
+    val = runner.encrypt("EVEEXPECTSEGGSFORBREAKFAST",5,8)
+    print(val)
+    print(runner.crack(val))
 
