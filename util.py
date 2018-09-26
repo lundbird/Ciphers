@@ -21,3 +21,6 @@ def get_cipher_frequencies(ciphertext):
     for letter in ciphertext:
         cipher_frequencies[letter]+=1.0/cipher_len
     return collections.OrderedDict(cipher_frequencies)
+
+
+    

@@ -116,6 +116,85 @@ class Affine(Cipher):
         a,b = likely_key.split(',')
         return self.decrypt(ciphertext,int(a),int(b))
 
+class Substitution(Cipher):
+    #UNSTABLE
+    def encrypt(self,plaintext,shifts):
+        pass
+    
+    def decrypt(self,ciphertext,shifts):
+        pass
+    
+    def crack(self,ciphertext,plaintext=None):
+        cipher_frequencies = get_cipher_frequencies(ciphertext)
+        e_sub = max(cipher_frequencies,key=cipher_frequencies.get)
+
+        triples={}
+        for i in range(len(ciphertext)-3):
+            currentString = ciphertext[i:i+3]
+            try:
+                if triples[currentString]!=0:
+                    for currentString in ciphertext:
+                        triples[currentString]+=1
+            except KeyError:
+                pass
+        triples = collections.OrderedDict(sorted(triples.get))
+        the_sub = triples[0]
+        and_sub = triples[1]
+
+        ciphertext = self._replace_chars(ciphertext,e_sub,the_sub,and_sub)
+
+        postE={}
+        doubles={}
+        for i in range(len(ciphertext)-1):
+            if ciphertext[i]=="E":
+                key = ciphertext[i+1]
+                postE[key]+=1
+            if ciphertext[i]==ciphertext[i+1]:
+                key = ciphertext[i]
+                doubles[key]+=1
+        r_sub = max(postE,postE.get)
+        s_sub = max(doubles,doubles.get)
+        ciphertext.replace(r_sub,"R")
+        ciphertext.replace(s_sub,"S")
+
+        return ciphertext
+
+    def _replace_chars(self,ciphertext,e_sub,the_sub,and_sub):
+        if (e_sub == the_sub[2]): #most freq character is E
+            ciphertext.replace(the_sub[0],"T")
+            ciphertext.replace(the_sub[1],"H")
+            ciphertext.replace(and_sub[2],"E")
+            ciphertext.replace(and_sub[0],"A")
+            ciphertext.replace(and_sub[1],"N")
+            ciphertext.replace(and_sub[2],"D")
+        elif (e_sub==the_sub[0]): #most freq char is T
+            ciphertext.replace(the_sub[0],"T")
+            ciphertext.replace(the_sub[1],"H")
+            ciphertext.replace(and_sub[0],"A")
+            ciphertext.replace(and_sub[1],"N")
+            ciphertext.replace(and_sub[2],"D")
+        else:   #our most common trigram is likely AND not THE
+            ciphertext.replace(the_sub[0],"A")
+            ciphertext.replace(the_sub[1],"N")
+            ciphertext.replace(the_sub[2],"D")
+            ciphertext.replace(the_sub[0],"T")
+            ciphertext.replace(the_sub[1],"H")
+            ciphertext.replace(the_sub[2],"E")
+
+        return ciphertext
+        
+
+
+
+
+
+
+
+
+
+
+
+
 
 if __name__=="__main__":
     runner = Affine()
