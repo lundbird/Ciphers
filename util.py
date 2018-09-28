@@ -1,5 +1,6 @@
 import collections
 import string
+import numpy as np
 
 '''collection of useful dictionaries, constantts, and functions for ciphers.'''
 
@@ -22,5 +23,49 @@ def get_cipher_frequencies(ciphertext):
         cipher_frequencies[letter]+=1.0/cipher_len
     return collections.OrderedDict(cipher_frequencies)
 
+def get_letter_counts(ciphertext):
+    '''same as get_cipher_frequences but does not divide by cipher_len'''
+    cipher_frequencies = dict.fromkeys(alphabet,0)
+    for letter in ciphertext:
+        cipher_frequencies[letter]+=1
+    return list(cipher_frequencies.values())
 
+def get_repeated_sequences(ciphertext,k):
+    sequences = collections.defaultdict(int)
+    for i in range(len(ciphertext)-k+1):
+        clip = ciphertext[i:i+k]
+        sequences[clip]+=1
+    return sorted(sequences,reverse=True,key=sequences.get)
+
+def get_double_letters(ciphertext):
+    doubles = collections.defaultdict(int)
+    for i in range(len(ciphertext)-1):
+        clip = ciphertext[i:i+2]
+        if clip[0]==clip[1]:
+            doubles[clip]+=1
+    return sorted(doubles,reverse=True,key=doubles.get)
     
+def IC(ciphertext):
+    freq = np.array(get_letter_counts(ciphertext))
+    numerator = sum(freq * (freq-1))
+    return numerator / (len(ciphertext)*(len(ciphertext)-1))
+
+def estimate_N(ciphertext):
+    return 0.0275/(IC(ciphertext)-0.0385)
+
+def find_N(ciphertext,iterations=12):
+    IC_by_iteration = []
+    ICs=[]
+    for i in range(2,iterations):
+        for j in range(i):
+            string = ciphertext[j::i] #easy way to split the string
+            ICs.append(IC(string))
+        IC_by_iteration.append(np.mean(ICs))
+    print(IC_by_iteration)
+    return np.argmax(IC_by_iteration) +2 #we start at key length 2
+
+if __name__=="__main__":
+    ciphertext = "IYMECGOBDOJBSNTVAQLNBIEAOYIOHVXZYZYLEEVIPWOBBOEIVZHWUDEAQALLKROCUWSWRYSIUYBMAEIRDEFYYLKODKOGIKPHPRDEJIPWLLWPHRKYMBMAKNGMRELYDPHRNPZHBYJDPMMWBXEYOZJMYXNYJDQWYMEOGPYBCXSXXYHLBELLEPRDEGWXLEPMNOCMRTGQQOUPPEDPSLZOJAEYWNMKRFBLPGIMQAYTSHMRCKTUMVSTVDBOEUEEVRGJGGPIATDRARABLPGIMQDBCFWXDFAWUWPPMRGJGNOETGDMCIIMEXTBEENBNICKYPWNQBLPGIMQOELICMRCLACMV"
+    print()
+    print(estimate_N(ciphertext))
+    print(find_N(ciphertext,20))

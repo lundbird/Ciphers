@@ -32,7 +32,7 @@ class Shift(Cipher):
         table = str.maketrans(shifted_alphabet,alphabet)
         return ciphertext.translate(table)
 
-    def crack(self,ciphertext,plaintext=None):
+    def crack(self,ciphertext,plaintext=None,decrypt=True):
         sums={}
         for shift in range(26):
             shifted_string = self.decrypt(ciphertext,shift)
@@ -40,7 +40,10 @@ class Shift(Cipher):
             correlations = [frequencies[letter]*cipher_frequencies[letter] for letter in alphabet]
             sums[shift] = sum(correlations)
         likely_key = max(sums,key=sums.get)
-        return self.decrypt(ciphertext,likely_key)
+        if decrypt:
+            return self.decrypt(ciphertext,likely_key)
+        else:
+            return likely_key
 
 
 class Viginere(Cipher):
@@ -56,7 +59,17 @@ class Viginere(Cipher):
         return ''.join(decrypted_list)
     
     def crack(self,ciphertext,plaintext=None):
-        pass
+        solution = []
+        ShiftCipher = Shift()
+        N = find_N(ciphertext)
+        for j in range(N):
+            letter_column = ciphertext[j::N]
+            letter_key = ShiftCipher.crack(letter_column,decrypt=False)
+            solution.append(letter_key)
+        keyword_list = [letters[num] for num in solution]
+        keyword = ''.join(keyword_list)
+        print(keyword)
+        return self.decrypt(ciphertext,keyword)
 
 class Hill(Cipher):
 
@@ -117,7 +130,7 @@ class Affine(Cipher):
         return self.decrypt(ciphertext,int(a),int(b))
 
 class Substitution(Cipher):
-    #UNSTABLE
+    
     def encrypt(self,plaintext,shifts):
         pass
     
@@ -125,80 +138,14 @@ class Substitution(Cipher):
         pass
     
     def crack(self,ciphertext,plaintext=None):
-        cipher_frequencies = get_cipher_frequencies(ciphertext)
-        e_sub = max(cipher_frequencies,key=cipher_frequencies.get)
-
-        triples={}
-        for i in range(len(ciphertext)-3):
-            currentString = ciphertext[i:i+3]
-            try:
-                if triples[currentString]!=0:
-                    for currentString in ciphertext:
-                        triples[currentString]+=1
-            except KeyError:
-                pass
-        triples = collections.OrderedDict(sorted(triples.get))
-        the_sub = triples[0]
-        and_sub = triples[1]
-
-        ciphertext = self._replace_chars(ciphertext,e_sub,the_sub,and_sub)
-
-        postE={}
-        doubles={}
-        for i in range(len(ciphertext)-1):
-            if ciphertext[i]=="E":
-                key = ciphertext[i+1]
-                postE[key]+=1
-            if ciphertext[i]==ciphertext[i+1]:
-                key = ciphertext[i]
-                doubles[key]+=1
-        r_sub = max(postE,postE.get)
-        s_sub = max(doubles,doubles.get)
-        ciphertext.replace(r_sub,"R")
-        ciphertext.replace(s_sub,"S")
-
-        return ciphertext
-
-    def _replace_chars(self,ciphertext,e_sub,the_sub,and_sub):
-        if (e_sub == the_sub[2]): #most freq character is E
-            ciphertext.replace(the_sub[0],"T")
-            ciphertext.replace(the_sub[1],"H")
-            ciphertext.replace(and_sub[2],"E")
-            ciphertext.replace(and_sub[0],"A")
-            ciphertext.replace(and_sub[1],"N")
-            ciphertext.replace(and_sub[2],"D")
-        elif (e_sub==the_sub[0]): #most freq char is T
-            ciphertext.replace(the_sub[0],"T")
-            ciphertext.replace(the_sub[1],"H")
-            ciphertext.replace(and_sub[0],"A")
-            ciphertext.replace(and_sub[1],"N")
-            ciphertext.replace(and_sub[2],"D")
-        else:   #our most common trigram is likely AND not THE
-            ciphertext.replace(the_sub[0],"A")
-            ciphertext.replace(the_sub[1],"N")
-            ciphertext.replace(the_sub[2],"D")
-            ciphertext.replace(the_sub[0],"T")
-            ciphertext.replace(the_sub[1],"H")
-            ciphertext.replace(the_sub[2],"E")
-
-        return ciphertext
-        
-
-
-
-
-
-
-
-
-
-
-
+        print("Most common letters: " + str(get_repeated_sequences(ciphertext,1)))
+        print("Most common digraphs: " + str(get_repeated_sequences(ciphertext,2)))
+        print("Most common trigraphs: " + str(get_repeated_sequences(ciphertext,3)))
+        print("Most common quadgraphs: " + str(get_repeated_sequences(ciphertext,4)))
+        print("Most common double letters: " + str(get_double_letters(ciphertext)))
 
 
 if __name__=="__main__":
-    runner = Affine()
-    val = runner.encrypt("EVEEXPECTSEGGSFORBREAKFAST",5,8)
-    print(val)
-    print(runner.crack(val))
-
+    ciphertext = ("IYMECGOBDOJBSNTVAQLNBIEAOYIOHVXZYZYLEEVIPWOBBOEIVZHWUDEAQALLKROCUWSWRYSIUYBMAEIRDEFYYLKODKOGIKPHPRDEJIPWLLWPHRKYMBMAKNGMRELYDPHRNPZHBYJDPMMWBXEYOZJMYXNYJDQWYMEOGPYBCXSXXYHLBELLEPRDEGWXLEPMNOCMRTGQQOUPPEDPSLZOJAEYWNMKRFBLPGIMQAYTSHMRCKTUMVSTVDBOEUEEVRGJGGPIATDRARABLPGIMQDBCFWXDFAWUWPPMRGJGNOETGDMCIIMEXTBEENBNICKYPWNQBLPGIMQOELICMRCLACMV")
+    runner = Viginere()
+    print(runner.crack(ciphertext))
