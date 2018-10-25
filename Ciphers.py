@@ -61,11 +61,11 @@ class Viginere(Cipher):
     def crack(self,ciphertext,plaintext=None):
         solution = []
         ShiftCipher = Shift()
-        N = find_N(ciphertext)
+        N = find_N(ciphertext) #determine length of keyword by greatest IC
         for j in range(N):
-            letter_column = ciphertext[j::N]
-            letter_key = ShiftCipher.crack(letter_column,decrypt=False)
-            solution.append(letter_key)
+            letter_column = ciphertext[j::N] #gets each collumn of letters
+            letter_key = ShiftCipher.crack(letter_column,decrypt=False)#find key
+            solution.append(letter_key) #append key to the keyword solution
         keyword_list = [letters[num] for num in solution]
         keyword = ''.join(keyword_list)
         print(keyword)

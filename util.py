@@ -16,6 +16,12 @@ def modInverse(a, m) :
             return x 
     return 1
 
+def remove_spaces(ciphertext):
+    return ciphertext.replace('\n','').replace(' ','')
+
+def remove_spaces_from_file(file_):
+    return open(file_).read().replace('\n','').replace(' ','')
+
 def get_cipher_frequencies(ciphertext):
     cipher_frequencies = dict.fromkeys(alphabet,0)
     cipher_len = len(ciphertext)
@@ -61,7 +67,7 @@ def find_N(ciphertext,iterations=12):
             string = ciphertext[j::i] #easy way to split the string
             ICs.append(IC(string))
         IC_by_iteration.append(np.mean(ICs))
-    print(IC_by_iteration)
+    #print(IC_by_iteration)
     return np.argmax(IC_by_iteration) +2 #we start at key length 2
 
 if __name__=="__main__":
@@ -69,3 +75,10 @@ if __name__=="__main__":
     print()
     print(estimate_N(ciphertext))
     print(find_N(ciphertext,20))
+
+    class Solution:
+    def twoSum(self, nums, target):
+        for i in range(nums):
+            for j in range(nums):
+                if nums[i]+nums[j]==target:
+                    return [i,j]
